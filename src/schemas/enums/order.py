@@ -1,4 +1,11 @@
 from enum import StrEnum
+from uuid import UUID
+
+from pydantic import BaseModel
+
+
+class OrderBroker(BaseModel):
+    id: UUID
 
 
 class OrderStatusEnum(StrEnum):

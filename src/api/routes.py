@@ -8,7 +8,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from common.container import Container
 from schemas.enums.order import OrderStatusEnum
-from schemas.order import OrderDbSchema
+from schemas.order import OrderBodySchema, OrderDbSchema
 from schemas.user import UserDbSchema, UserRegisterBodySchema
 from services.order import OrderService
 from services.user import UserService
@@ -46,6 +46,26 @@ async def get_token(
     )
 
 
+@router.put(
+    "/orders/",
+)
+@inject
+async def create_order(
+    user_id: UserId,
+    body: OrderBodySchema,
+    service: OrderService = Depends(Provide[Container.order_service]),
+) -> OrderDbSchema:
+    """Возвращает заказы пользователя."""
+
+    return await service.create_order(
+        {
+            "user_id": user_id,
+            "status": OrderStatusEnum.PENDING,
+            **body.model_dump(),
+        }
+    )
+
+
 @router.get(
     "/orders/{order_id}",
 )
@@ -74,7 +94,7 @@ async def update_order(
 
 
 @router.patch(
-    "/orders/",
+    "/orders/user/",
 )
 @inject
 async def get_orders(
@@ -82,5 +102,7 @@ async def get_orders(
     service: OrderService = Depends(Provide[Container.order_service]),
 ) -> list[OrderDbSchema]:
     """Возвращает заказы пользователя."""
-    # TODO Логичнее чтобы путь маршрута был /orders/, а user_id брать из токена
+    # TODO Логичнее чтобы путь маршрута был /orders/user/,
+    #  а user_id брать из токена
+    #  По хорошему нужна пагинация
     return await service.get_orders(user_id=user_id)

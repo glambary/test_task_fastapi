@@ -1,5 +1,7 @@
+from typing import Any
 from uuid import UUID
 
+from broker.utils import broker_publish
 from repositories.repositories import OrderRepository
 from schemas.enums.order import OrderStatusEnum
 from schemas.order import OrderDbSchema
@@ -13,6 +15,16 @@ class OrderService:
         repository: OrderRepository,
     ):
         self.repository = repository
+
+    async def create_order(
+        self,
+        # TODO Нужна pydantic schema
+        data: dict[str, Any],
+    ) -> OrderDbSchema:
+        order = await self.repository.add(data)
+        # TODO вынести queue в переменные
+        await broker_publish({"id": order.id}, "new_order")
+        return order
 
     async def get_order(
         self,

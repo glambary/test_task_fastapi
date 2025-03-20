@@ -1,8 +1,11 @@
 """Контейнер с зависимостями сервиса."""
 
 from dependency_injector import containers, providers
+from faststream.rabbit import RabbitBroker
+from faststream.rabbit.fastapi import RabbitRouter
 
-from common.config import Settings
+from celery import Celery
+from common.config import Settings, settings
 from models.user import User
 from repositories.db import Database
 from repositories.repositories import UserRepository
@@ -46,13 +49,18 @@ class Container(containers.DeclarativeContainer):
 
     # -------------------------------------------------------------------------
 
-    # Брокер
-    # kafka_router: providers.Provider[KafkaRouter] = providers.Dependency(
-    #     instance_of=KafkaRouter
-    # )
-    # kafka_broker: providers.Provider[KafkaBroker] = providers.Dependency(
-    #     instance_of=KafkaBroker
-    # )
+    # Брокер и планировщик
+
+    celery: providers.Provider[Celery] = providers.Singleton(
+        Celery,
+        broker=settings.rabbit.url,
+    )
+    kafka_router: providers.Provider[RabbitRouter] = providers.Dependency(
+        instance_of=RabbitRouter,
+    )
+    kafka_broker: providers.Provider[RabbitBroker] = providers.Dependency(
+        instance_of=RabbitBroker,
+    )
 
     # -------------------------------------------------------------------------
 

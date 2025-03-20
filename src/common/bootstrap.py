@@ -1,10 +1,8 @@
-import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 import sentry_sdk
 import structlog
-from broker.tasks import ROUTES
 from cache_sdk.backends.redis import RedisBackend
 from cache_sdk.base import set_config
 from cache_sdk.integrations.fastapi.config import FastAPICacheConfig
@@ -12,13 +10,16 @@ from cache_sdk.integrations.fastapi.middleware import FastAPICacheMiddleware
 from fastapi_sdk.healthchecker.healthchecker import HealthChecker
 from fastapi_sdk.healthchecker.healthchecks import HealthChecks
 from faststream.kafka import KafkaBroker
-from faststream.kafka.fastapi import KafkaRouter
+from faststream.rabbit.fastapi import RabbitBroker, RabbitRouter
 from sso.authentication import TokenAuthBackend
 from sso.exception_handler import auth_exception_handler
 from starlette.middleware.authentication import AuthenticationMiddleware
 from starlette.middleware.cors import CORSMiddleware
 
 from api.routes import api_router
+from broker.hadlers import BROKER_HANDLERS, handle_new_order
+from broker.tasks import ROUTES
+from celery.tasks import CELERY_TASKS
 from common.application import App
 from common.config import settings
 from common.container import Container
@@ -38,21 +39,18 @@ async def lifespan(app: App) -> AsyncIterator[None]:
 
 async def init_container() -> Container:
     """Инициализация контейнера DI."""
-    router = KafkaRouter(
-        settings.kafka.KAFKA_URL,
+    router = RabbitRouter(
+        url=settings.rabbit.url,
         lifespan=lifespan,
-        include_in_schema=True,
     )
     # по дефолту брокер создается с apply_types=False
-    router.broker = KafkaBroker(settings.kafka.KAFKA_URL)
+    router.broker = RabbitBroker(settings.rabbit.url)
 
-    container = Container(kafka_router=router, kafka_broker=router.broker)
+    container = Container(rabbit_router=router, rabbit_broker=router.broker)
 
-    # DI не знает еще про отдельный пакет pydantic_settings
-    container.config.from_dict(settings.model_dump())
-    container.core.config.from_dict(settings.model_dump())
     if resources := container.core.init_resources():
         await resources
+
     container.check_dependencies()
 
     return container
@@ -72,11 +70,19 @@ def init_sentry() -> None:
 
 async def create_app() -> App:
     """Формирование app для запуска."""
-    if settings.sentry.SENTRY_DSN:
-        init_sentry()
-    logging.info("Running worker")
     container = await init_container()
-    kafka_router = container.kafka_router()
+
+    # Celery
+    celery = container.celery()
+    # Регистрация задач Celery
+    for t in CELERY_TASKS:
+        celery.task(t)
+
+    # Rabbit
+    rabbit_broker = container.rabbit_broker()
+    # Регистрация обработчиков Rabbit
+    for queue, func in BROKER_HANDLERS.items():
+        rabbit_broker.subscribe(handle_new_order, queue)
 
     app = App(
         service_code=settings.app.SERVICE_CODE,
@@ -116,31 +122,6 @@ async def create_app() -> App:
         exclude_routes=frozenset(("/api/v1/routers/profile",)),
     )
 
-    # компрессия должна быть после кэширования
-    app.add_middleware(CompressionMiddleware)
-
-    app.add_middleware(
-        AuthenticationMiddleware,
-        backend=TokenAuthBackend(
-            service=app.container.auth_service(),
-            verified_endpoints=(
-                "/api/v1/routers/auth/logout",
-                "/api/v1/routers/reviews",
-                "/api/v1/routers/planning_to_go/change_decision",
-                "/api/v1/routers/planning_to_go/invite/encode",
-            ),
-            verified_routes=(
-                "/api/v1/routers/favorite",
-                "/api/v1/routers/profile",
-                "/api/v1/routers/widget",
-                "/api/v1/routers/like",
-                "/api/v1/routers/loyalty_teen",
-            ),
-        ),
-        on_error=auth_exception_handler,
-    )
-
-    # TODO: настроить CORS на основании заголовка Platform
     app.add_middleware(
         CORSMiddleware,
         allow_credentials=settings.app.CORS_ALLOW_CREDENTIALS,

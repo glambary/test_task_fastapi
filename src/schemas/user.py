@@ -16,6 +16,6 @@ class UserDbSchema(BaseModel):
 
     id: UUID
     created_at: datetime
-    updated_at: datetime | None
+    updated_at: datetime
     email: EmailStr
     password: str

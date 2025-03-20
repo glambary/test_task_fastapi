@@ -12,8 +12,15 @@ class OrderDbSchema(BaseModel):
 
     id: UUID
     created_at: datetime
-    updated_at: datetime | None
+    updated_at: datetime
     user_id: UUID
     items: dict[str, Any]
     total_price: float
     status: OrderStatusEnum
+
+
+class OrderBodySchema(BaseModel):
+    """Схема для создания заказа."""
+
+    items: dict[str, Any]
+    total_price: float

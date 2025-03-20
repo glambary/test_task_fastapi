@@ -29,10 +29,64 @@ class AuthSettings(EnvSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int
 
 
+class DatabaseSettings(EnvSettings):
+    """Настройки БД."""
+
+    DB_USER: str
+    DB_PASSWORD: str
+    DB_HOST: str
+    DB_PORT: int
+    DB_NAME: str
+
+    @property
+    def url(self) -> str:
+        """Возвращает урл."""
+        return (
+            f"postgresql+asyncpg:"
+            f"//{self.DB_USER}:{self.DB_PASSWORD}"
+            f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+        )
+
+
+# class CelerySettings(EnvSettings):
+#     """Настройки Celery."""
+#
+#     CELERY_USER: str
+#     CELERY_PASSWORD: str
+#     CELERY_HOST: str
+#     CELERY_PORT: int
+#
+#     @property
+#     def url(self) -> str:
+#         """Возвращает урл."""
+#         return (
+#             f"amqp://{self.CELERY_USER}:{self.CELERY_PASSWORD}"
+#             f"@{self.CELERY_HOST}:{self.CELERY_PORT}"
+#         )
+
+
+class RabbitSettings(EnvSettings):
+    """Настройки Rabbit."""
+
+    RABBIT_USER: str
+    RABBIT_PASSWORD: str
+    RABBIT_HOST: str
+    RABBIT_PORT: int
+
+    @property
+    def url(self) -> str:
+        """Возвращает урл."""
+        return (
+            f"amqp://{self.RABBIT_USER}:{self.RABBIT_PASSWORD}"
+            f"@{self.RABBIT_HOST}:{self.RABBIT_PORT}"
+        )
+
+
 class Settings(BaseSettings):
     app: AppSettings = AppSettings()
     kafka: KafkaSettings = KafkaSettings()
     auth: AuthSettings = AuthSettings()
+    rabbit: RabbitSettings = RabbitSettings()
 
 
 settings = Settings()
