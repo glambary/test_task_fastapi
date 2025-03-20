@@ -1,0 +1,42 @@
+default_language_version:
+    python: python3.12
+
+repos:
+    - repo: https://github.com/charliermarsh/ruff-pre-commit
+      rev: v0.11.0
+      hooks:
+        - id: ruff
+        - id: ruff-format
+          args: [--config=ruff.toml, --diff]
+
+    - repo: https://github.com/pycqa/isort
+      rev: 6.0.1
+      hooks:
+        - id: isort
+          name: isort (python)
+          args: [--check]
+
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v5.0.0
+      hooks:
+        - id: detect-private-key
+        - id: mixed-line-ending
+          args: [ --fix=lf ]
+        - id: check-added-large-files
+          args: [ --maxkb=500 ]
+        - id: check-ast
+        - id: check-builtin-literals
+        - id: check-case-conflict
+        - id: check-docstring-first
+        - id: check-merge-conflict
+        - id: check-symlinks
+        - id: debug-statements
+        - id: end-of-file-fixer
+        - id: debug-statements
+        - id: requirements-txt-fixer
+        - id: trailing-whitespace
+        - id: check-toml
+        - id: check-json
+        - id: check-yaml
+          args:
+            - --allow-multiple-documents
