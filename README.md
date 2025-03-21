@@ -32,12 +32,12 @@ GET
 
 2.2 База данных (PostgreSQL)
 Таблица orders:
-id (UUID, primary key)
-user_id (int, ForeignKey на пользователей)
-items (JSON, список товаров)
-total_price (float)
-status (enum: PENDING, PAID, SHIPPED, CANCELED)
-created_at (datetime)
+- id (UUID, primary key)
+- user_id (int, ForeignKey на пользователей)
+- items (JSON, список товаров)
+- total_price (float)
+- status (enum: PENDING, PAID, SHIPPED, CANCELED)
+- created_at (datetime)
 2.3 Очереди сообщений (Kafka / RabbitMQ)
 При создании заказа публиковать событие "new_order" в очередь.
 Консьюмер обрабатывает заказ и передает его в Celery.
