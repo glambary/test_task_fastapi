@@ -10,7 +10,7 @@
 
 2. Функциональные требования
 2.1 API эндпоинты
-![img.png](img.png)
+![img.png](img.png)  
 2.2 База данных (PostgreSQL)
 Таблица orders:
 - id (UUID, primary key)
