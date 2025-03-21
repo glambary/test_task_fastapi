@@ -13,6 +13,7 @@ from schemas.user import UserDbSchema, UserRegisterBodySchema
 from services.order import OrderService
 from services.user import UserService
 from services.utils.auth import check_auth
+from services.utils.cache import redis_cache
 
 
 router = APIRouter()
@@ -46,7 +47,7 @@ async def get_token(
     )
 
 
-@router.put(
+@router.post(
     "/orders/",
 )
 @inject
@@ -69,6 +70,7 @@ async def create_order(
 @router.get(
     "/orders/{order_id}",
 )
+@redis_cache()
 @inject
 async def get_order(
     order_id: UUID,

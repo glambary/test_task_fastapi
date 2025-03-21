@@ -1,10 +1,9 @@
 from contextlib import AbstractAsyncContextManager
-from tkinter.tix import Select
 from typing import Any, Callable, TypeVar
 from uuid import UUID
 
 from pydantic import BaseModel
-from sqlalchemy import Insert, Update, insert, select, update
+from sqlalchemy import Insert, Select, Update, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.base import Base

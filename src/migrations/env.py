@@ -2,12 +2,14 @@ import asyncio
 from logging.config import fileConfig
 
 from alembic import context
-from fastapi_sdk.sqlalchemy.base import Base
 from sqlalchemy import engine_from_config, pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import AsyncEngine
 
+import models.order  # noqa: F401 Чтобы модели появились в памяти
+import models.user  # noqa: F401 Чтобы модели появились в памяти
 from common.config import settings
+from models.base import Base
 
 
 # this is the Alembic Config object, which provides
@@ -57,6 +59,7 @@ def run_migrations_offline() -> None:
 
 def do_run_migrations(connection: Connection) -> None:
     """Run migrations."""
+    print(target_metadata)
     context.configure(connection=connection, target_metadata=target_metadata)
 
     with context.begin_transaction():

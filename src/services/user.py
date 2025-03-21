@@ -43,6 +43,6 @@ class UserService:
             )
 
         token_expires = timedelta(minutes=settings.auth.ACCESS_TOKEN_EXPIRE_MINUTES)
-        token = self.auth.create_token({"id": user.id}, token_expires)
+        token = self.auth.create_token({"id": str(user.id)}, token_expires)
 
         return token

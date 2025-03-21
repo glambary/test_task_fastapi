@@ -23,7 +23,7 @@ class OrderService:
     ) -> OrderDbSchema:
         order = await self.repository.add(data)
         # TODO вынести queue в переменные
-        await broker_publish({"id": order.id}, "new_order")
+        await broker_publish({"data": {"id": order.id}}, "new_order")
         return order
 
     async def get_order(

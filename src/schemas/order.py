@@ -7,6 +7,10 @@ from pydantic import BaseModel
 from schemas.enums.order import OrderStatusEnum
 
 
+class OrderBrokerSchema(BaseModel):
+    id: UUID
+
+
 class OrderDbSchema(BaseModel):
     """Схема заказа."""
 

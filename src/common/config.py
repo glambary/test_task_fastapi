@@ -1,8 +1,8 @@
-import pydantic
+from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-pydantic.BaseSettings = BaseSettings  # чтобы settings прокинуть в config DI
+# pydantic.BaseSettings = BaseSettings  # чтобы settings прокинуть в config DI
 
 
 class EnvSettings(BaseSettings):
@@ -15,18 +15,21 @@ class EnvSettings(BaseSettings):
 
 class AppSettings(EnvSettings):
     CORS_ALLOW_CREDENTIALS: bool = False
-    CORS_ALLOWED_ORIGINS = ["http://localhost:8080", "http://127.0.0.1:8080"]
+    CORS_ALLOW_ORIGINS: list[str] = ["http://localhost:8080", "http://127.0.0.1:8080"]
     CORS_ALLOW_METHODS: list[str] = ["*"]
     CORS_ALLOW_HEADERS: list[str] = ["*"]
 
 
-class KafkaSettings(EnvSettings):
-    KAFKA_URL: str
+class RedisSettings(EnvSettings):
+    REDIS_HOST: str
+    REDIS_PORT: int
+    REDIS_PASSWORD: str = ""
+    REDIS_BLOCKING_TIMEOUT: float = 1.5  # seconds
 
 
 class AuthSettings(EnvSettings):
     SECRET_KEY: str
-    ACCESS_TOKEN_EXPIRE_MINUTES: int
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
 
 class DatabaseSettings(EnvSettings):
@@ -38,6 +41,7 @@ class DatabaseSettings(EnvSettings):
     DB_PORT: int
     DB_NAME: str
 
+    @computed_field(return_type=str)
     @property
     def url(self) -> str:
         """Возвращает урл."""
@@ -48,23 +52,6 @@ class DatabaseSettings(EnvSettings):
         )
 
 
-# class CelerySettings(EnvSettings):
-#     """Настройки Celery."""
-#
-#     CELERY_USER: str
-#     CELERY_PASSWORD: str
-#     CELERY_HOST: str
-#     CELERY_PORT: int
-#
-#     @property
-#     def url(self) -> str:
-#         """Возвращает урл."""
-#         return (
-#             f"amqp://{self.CELERY_USER}:{self.CELERY_PASSWORD}"
-#             f"@{self.CELERY_HOST}:{self.CELERY_PORT}"
-#         )
-
-
 class RabbitSettings(EnvSettings):
     """Настройки Rabbit."""
 
@@ -73,6 +60,7 @@ class RabbitSettings(EnvSettings):
     RABBIT_HOST: str
     RABBIT_PORT: int
 
+    @computed_field(return_type=str)
     @property
     def url(self) -> str:
         """Возвращает урл."""
@@ -84,8 +72,9 @@ class RabbitSettings(EnvSettings):
 
 class Settings(BaseSettings):
     app: AppSettings = AppSettings()
-    kafka: KafkaSettings = KafkaSettings()
+    redis: RedisSettings = RedisSettings()
     auth: AuthSettings = AuthSettings()
+    db: DatabaseSettings = DatabaseSettings()
     rabbit: RabbitSettings = RabbitSettings()
 
 
