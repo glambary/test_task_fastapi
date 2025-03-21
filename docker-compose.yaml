@@ -1,0 +1,89 @@
+version: "3"
+
+services:
+  app:
+    container_name: "app"
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    command: [ "bash", "-c", "
+      alembic upgrade head && 
+      cd src &&
+      uvicorn main:app --host=0.0.0.0 --port=8000 --reload
+    " ]
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+      - rabbit
+#      - celery
+    restart: always
+    networks:
+      - custom
+
+#  celery:
+#    container_name: "celery"
+#    build:
+#      context: ./
+#      dockerfile: Dockerfile
+#    command: [ "bash", "-c", "PYTHONPATH=$(pwd)/src celery -A main.celery worker --loglevel=info"]
+#    env_file:
+#      - .env
+#    depends_on:
+#      - rabbit
+#    restart: always
+#    networks:
+#      - custom
+
+  postgres:
+    container_name: "postgres"
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    env_file:
+      - .env
+    volumes:
+      - ${HOME}/.cache/${PROJECT_NAME}:/var/lib/postgresql/data
+    restart: always
+    networks:
+      - custom
+
+  redis:
+    container_name: "redis"
+    image: bitnami/redis:latest
+    env_file:
+      - .env
+    ports:
+      - "6379:6379"
+    environment:
+      ALLOW_EMPTY_PASSWORD: yes
+    networks:
+      - custom
+
+  rabbit:
+    container_name: "rabbit"
+    image: bitnami/rabbitmq:latest
+    env_file:
+      - .env
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_USERNAME: ${RABBIT_USER}
+      RABBITMQ_PASSWORD: ${RABBIT_PASSWORD}
+      RABBITMQ_MANAGEMENT_ALLOW_WEB_ACCESS: true
+    networks:
+      - custom
+
+
+networks:
+  custom:
+    driver: bridge
