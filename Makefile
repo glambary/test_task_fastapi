@@ -41,3 +41,9 @@ upgrade:
 
 downgrade:
 	alembic downgrade -1
+
+start:
+	docker compose up --verbose
+
+stop:
+	docker compose stop
