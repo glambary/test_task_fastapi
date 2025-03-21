@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Any
 from uuid import UUID
 
 from dependency_injector.wiring import Provide, inject
@@ -13,7 +13,6 @@ from schemas.user import UserDbSchema, UserRegisterBodySchema
 from services.order import OrderService
 from services.user import UserService
 from services.utils.auth import check_auth
-from services.utils.cache import redis_cache
 
 
 router = APIRouter()
@@ -40,11 +39,14 @@ async def register(
 async def get_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     service: UserService = Depends(Provide[Container.user_service]),
-) -> str:
+) -> dict[str, Any]:
     """Возвращает JWT токен."""
-    return await service.get_token(
-        email=form_data.username, password=form_data.password
-    )
+    return {
+        "access_token": await service.get_token(
+            email=form_data.username, password=form_data.password
+        ),
+        "token_type": "bearer",
+    }
 
 
 @router.post(
@@ -70,15 +72,14 @@ async def create_order(
 @router.get(
     "/orders/{order_id}",
 )
-@redis_cache()
 @inject
 async def get_order(
     order_id: UUID,
-    _: UserId,
+    user_id: UserId,
     service: OrderService = Depends(Provide[Container.order_service]),
 ) -> OrderDbSchema:
     """Возвращает заказ."""
-    return await service.get_order(order_id)
+    return await service.get_order(order_id, user_id)
 
 
 @router.patch(

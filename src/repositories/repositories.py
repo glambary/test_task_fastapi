@@ -98,7 +98,7 @@ class OrderRepository(BaseRepository):
     async def get_orders(
         self, user_id: UUID, session: AsyncSession | None = None
     ) -> list[OrderDbSchema]:
-        query = self.get_base_query().where(user_id=user_id)
+        query = self.get_base_query().where(self._model.user_id == user_id)
 
         async with self.use_or_create_session(session) as session:
             fetch_results = await session.execute(query)

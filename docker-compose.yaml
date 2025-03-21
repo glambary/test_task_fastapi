@@ -7,9 +7,8 @@ services:
       context: ./
       dockerfile: Dockerfile
     command: [ "bash", "-c", "
-      alembic upgrade head && 
-      cd src &&
-      uvicorn main:app --host=0.0.0.0 --port=8000 --reload
+      alembic upgrade head &&
+      python3 src/main.py
     " ]
     ports:
       - "8000:8000"
@@ -19,24 +18,24 @@ services:
       - postgres
       - redis
       - rabbit
-#      - celery
+      - celery
     restart: always
     networks:
       - custom
 
-#  celery:
-#    container_name: "celery"
-#    build:
-#      context: ./
-#      dockerfile: Dockerfile
-#    command: [ "bash", "-c", "PYTHONPATH=$(pwd)/src celery -A main.celery worker --loglevel=info"]
-#    env_file:
-#      - .env
-#    depends_on:
-#      - rabbit
-#    restart: always
-#    networks:
-#      - custom
+  celery:
+    container_name: "celery"
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    command: [ "bash", "-c", "PYTHONPATH=$(pwd)/src celery -A main.celery worker --loglevel=info"]
+    env_file:
+      - .env
+    depends_on:
+      - rabbit
+    restart: always
+    networks:
+      - custom
 
   postgres:
     container_name: "postgres"

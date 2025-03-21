@@ -7,7 +7,7 @@ from fastapi.security import OAuth2PasswordBearer
 from services.auth import AuthService
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token/")
 
 
 # TODO: Авторизацию лучше сделать через middleware
@@ -18,4 +18,4 @@ def check_auth(
 ) -> UUID:
     """Проверяет токен и возвращает user_id"""
     payload = auth_service.decode_jwt(token)
-    return payload["id"]
+    return UUID(payload["id"])
