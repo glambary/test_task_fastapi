@@ -28,7 +28,7 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile
-    command: [ "bash", "-c", "PYTHONPATH=$(pwd)/src celery -A main.celery worker --loglevel=info"]
+    command: [ "bash", "-c", "PYTHONPATH=src celery -A main.celery worker --loglevel=info"]
     env_file:
       - .env
     depends_on:
