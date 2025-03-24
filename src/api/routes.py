@@ -79,7 +79,7 @@ async def get_order(
     service: OrderService = Depends(Provide[Container.order_service]),
 ) -> OrderDbSchema:
     """Возвращает заказ."""
-    return await service.get_order(order_id, user_id)
+    return await service.get_order(order_id=order_id, user_id=user_id)
 
 
 @router.patch(

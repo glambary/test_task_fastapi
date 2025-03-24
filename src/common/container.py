@@ -4,7 +4,7 @@ from celery import Celery
 from dependency_injector import containers, providers
 from faststream.rabbit import RabbitBroker
 from faststream.rabbit.fastapi import RabbitRouter
-from redis import Redis
+from redis.asyncio import Redis
 
 from common.config import Settings, settings
 from models.order import Order
