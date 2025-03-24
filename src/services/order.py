@@ -44,8 +44,10 @@ class OrderService:
     async def update_status(
         self,
         order_id: UUID,
+        user_id: UUID,
         order_status: OrderStatusEnum,
     ) -> OrderDbSchema:
+        await self.get_order(order_id, user_id)
         return await self.repository.update(order_id, {"status": order_status})
 
     async def get_orders(

@@ -89,11 +89,11 @@ async def get_order(
 async def update_order(
     order_id: UUID,
     status: Annotated[OrderStatusEnum, Body(embed=True)],
-    _: UserId,
+    user_id: UserId,
     service: OrderService = Depends(Provide[Container.order_service]),
 ) -> OrderDbSchema:
     """Обновляет статус заказа."""
-    return await service.update_status(order_id, status)
+    return await service.update_status(order_id, user_id, status)
 
 
 @router.patch(

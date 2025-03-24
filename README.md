@@ -1,5 +1,5 @@
 ### Для запуска: 
-1) переименовать .env.example в .env
+1) скопировать .env.example и переименовать в .env
 2) запустить docker compose up
 
 Тестовое:
@@ -11,7 +11,7 @@
 2. Функциональные требования  
 2.1 API эндпоинты
 ![img.png](img.png)  
-2.2 База данных (PostgreSQL)
+2.2 База данных (PostgreSQL)  
 Таблица orders:
 - id (UUID, primary key)
 - user_id (int, ForeignKey на пользователей)
